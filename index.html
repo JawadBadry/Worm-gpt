@@ -3,10 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Worm GPT</title>
+  <title>Worm gpt</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#030712">
   <style>
     :root {
       --bg-main: #0d0f12;
@@ -81,7 +79,15 @@
       padding: 12px;
       border-left: 1px solid var(--border-color);
       z-index: 50;
-      transition: transform 0.3s ease, background-color 0.3s, border-color 0.3s;
+      transition: transform 0.3s ease, width 0.3s ease, background-color 0.3s, border-color 0.3s;
+    }
+
+    .sidebar.collapsed {
+      transform: translateX(100%);
+      width: 0;
+      padding: 0;
+      overflow: hidden;
+      border: none;
     }
 
     .sidebar-header {
@@ -237,8 +243,14 @@
       background-color: var(--bg-header);
     }
 
+    .chat-header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
     .menu-toggle-btn {
-      display: none;
+      display: flex;
       background: none;
       border: none;
       color: var(--text-main);
@@ -310,7 +322,6 @@
       color: var(--error-text);
     }
 
-    /* زر نسخ الرسالة تحت كل رسالة */
     .msg-footer {
       display: flex;
       justify-content: flex-end;
@@ -342,9 +353,11 @@
       border: 1px solid var(--border-color);
       border-radius: 8px;
       margin: 10px 0;
-      overflow: hidden;
+      overflow-x: auto;
       direction: ltr;
       text-align: left;
+      max-width: 100%;
+      width: 100%;
     }
 
     .code-header-bar {
@@ -389,6 +402,8 @@
       font-family: Consolas, Monaco, monospace;
       font-size: 13px;
       color: #f8f8f2;
+      white-space: pre-wrap;
+      word-break: break-all;
     }
 
     .chat-input-wrapper {
@@ -512,10 +527,6 @@
     }
 
     @media (max-width: 768px) {
-      .menu-toggle-btn {
-        display: flex;
-      }
-
       .close-sidebar-btn {
         display: block;
       }
@@ -536,11 +547,19 @@
         top: 0;
         right: 0;
         height: 100%;
+        width: 280px !important;
         transform: translateX(100%);
       }
 
       .sidebar.open {
         transform: translateX(0);
+      }
+
+      .sidebar.collapsed {
+        transform: translateX(100%);
+        width: 280px !important;
+        padding: 12px;
+        border-left: 1px solid var(--border-color);
       }
 
       .chat-messages {
@@ -570,7 +589,6 @@
         <div class="history-list" id="historyList"></div>
       </div>
       
-      <!-- الأزرار الثلاثة السفلى بالتغيير المباشر السريع -->
       <div class="sidebar-footer">
         <button class="footer-action-btn" onclick="openKeyModal()">
           <span style="font-size: 16px;">🔑</span>
@@ -589,14 +607,16 @@
 
     <div class="chat-container">
       <div class="chat-header">
-        <button class="menu-toggle-btn" onclick="toggleSidebar()">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="3" y1="12" x2="21" y2="12"></line>
-            <line x1="3" y1="6" x2="21" y2="6"></line>
-            <line x1="3" y1="18" x2="21" y2="18"></line>
-          </svg>
-        </button>
-        <div class="chat-title">Worm GPT</div>
+        <div class="chat-header-left">
+          <button class="menu-toggle-btn" onclick="toggleSidebar()">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+          <div class="chat-title">Worm gpt</div>
+        </div>
       </div>
 
       <div class="chat-messages" id="chatMessages"></div>
@@ -716,33 +736,42 @@ user style from WORM Hey it s me This user style is from WORM Your person Please
       }
     }
 
-    // تبديل سريع ومباشر للغة دون قوائم منبثقة
     function toggleLanguageQuick() {
       currentLang = currentLang === 'ar' ? 'en' : 'ar';
       localStorage.setItem('app_lang', currentLang);
       applyThemeAndLang();
       renderHistory();
       renderMessages();
-      closeSidebar();
+      closeSidebarMobile();
     }
 
     function toggleThemeQuick() {
       currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
       localStorage.setItem('app_theme', currentTheme);
       applyThemeAndLang();
-      closeSidebar();
+      closeSidebarMobile();
     }
 
     function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
       if (window.innerWidth <= 768) {
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('sidebarOverlay');
         sidebar.classList.toggle('open');
         overlay.classList.toggle('show');
+      } else {
+        sidebar.classList.toggle('collapsed');
       }
     }
 
     function closeSidebar() {
+      if (window.innerWidth <= 768) {
+        closeSidebarMobile();
+      } else {
+        document.getElementById('sidebar').classList.add('collapsed');
+      }
+    }
+
+    function closeSidebarMobile() {
       if (window.innerWidth <= 768) {
         document.getElementById('sidebar').classList.remove('open');
         document.getElementById('sidebarOverlay').classList.remove('show');
@@ -752,7 +781,7 @@ user style from WORM Hey it s me This user style is from WORM Your person Please
     function openKeyModal() {
       document.getElementById('apiKeyInput').value = apiKey;
       document.getElementById('keyModal').style.display = 'flex';
-      closeSidebar();
+      closeSidebarMobile();
     }
 
     function closeKeyModal() {
@@ -775,7 +804,7 @@ user style from WORM Hey it s me This user style is from WORM Your person Please
       saveChatsToStorage();
       renderHistory();
       renderMessages();
-      closeSidebar();
+      closeSidebarMobile();
     }
 
     function loadChat(chatId) {
@@ -783,7 +812,7 @@ user style from WORM Hey it s me This user style is from WORM Your person Please
       localStorage.setItem('app_current_chat', currentChatId);
       renderHistory();
       renderMessages();
-      closeSidebar();
+      closeSidebarMobile();
     }
 
     function deleteChat(chatId, event) {
@@ -841,7 +870,26 @@ user style from WORM Hey it s me This user style is from WORM Your person Please
       }
     }
 
-    // دالة تحليل النص لعرض الأكواد مع أزرار التحميل والنسخ
+    function processTextForMobile(text) {
+      if (window.innerWidth > 768) return text;
+      let result = '';
+      let charCount = 0;
+      for (let i = 0; i < text.length; i++) {
+        let char = text[i];
+        result += char;
+        if (char === '\n') {
+          charCount = 0;
+        } else {
+          charCount++;
+          if (charCount >= 39) {
+            result += '\n';
+            charCount = 0;
+          }
+        }
+      }
+      return result;
+    }
+
     function formatMessageContent(text, msgElement) {
       msgElement.innerHTML = '';
       
@@ -851,7 +899,9 @@ user style from WORM Hey it s me This user style is from WORM Your person Please
 
       while ((match = codeBlockRegex.exec(text)) !== null) {
         if (match.index > lastIndex) {
-          const textPart = document.createTextNode(text.substring(lastIndex, match.index));
+          const plainTextChunk = text.substring(lastIndex, match.index);
+          const processedChunk = processTextForMobile(plainTextChunk);
+          const textPart = document.createTextNode(processedChunk);
           msgElement.appendChild(textPart);
         }
 
@@ -922,12 +972,13 @@ user style from WORM Hey it s me This user style is from WORM Your person Please
       }
 
       if (lastIndex < text.length) {
-        const remainingText = document.createTextNode(text.substring(lastIndex));
-        msgElement.appendChild(remainingText);
+        const remainingText = text.substring(lastIndex);
+        const processedRemaining = processTextForMobile(remainingText);
+        const textPart = document.createTextNode(processedRemaining);
+        msgElement.appendChild(textPart);
       }
     }
 
-    // إضافة واجهة الرسالة مع زر النسخ تحت كل رسالة
     function appendMessageUI(text, type) {
       const box = document.getElementById('chatMessages');
       
@@ -945,7 +996,6 @@ user style from WORM Hey it s me This user style is from WORM Your person Please
 
       wrapper.appendChild(msg);
 
-      // زر نسخ الرسالة تحت كل رسالة
       const footer = document.createElement('div');
       footer.className = 'msg-footer';
 
